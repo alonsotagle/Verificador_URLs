@@ -18,6 +18,7 @@
 	</ul>
 
 	<div>No. de Links analizados:</div>
+	<p><?php echo $elementos; ?></p>
 
 	<table id="tabla">
 		<thead>
@@ -81,7 +82,38 @@ function verifica($url){
 
 	return 6;
 }
+
+function multi($links){
+
+	$mh = curl_multi_init();
+
+	foreach ($links as $i => $url) {
+	       $conn[$i]=curl_init($url);
+	       curl_setopt($conn[$i],CURLOPT_RETURNTRANSFER,1);//return data as string 
+	       curl_setopt($conn[$i],CURLOPT_FOLLOWLOCATION,1);//follow redirects
+	       curl_setopt($conn[$i],CURLOPT_MAXREDIRS,2);//maximum redirects
+	       curl_setopt($conn[$i],CURLOPT_CONNECTTIMEOUT,10);//timeout
+	       curl_multi_add_handle ($mh,$conn[$i]);
+	}
+
+	do { $n=curl_multi_exec($mh,$active); } while ($active);
+
+	foreach ($links as $i => $url) {
+	       $res[$i]=curl_multi_getcontent($conn[$i]);
+	       curl_multi_remove_handle($mh,$conn[$i]);
+	       curl_close($conn[$i]);
+	}
+	curl_multi_close($mh);
+
+
+	print_r($res);
+
+}
+
+var_dump($links);
+//multi($links);
 	
+/*
 //Se ingresa directo
 if ( $recursos ) {
 	//Iterar por el arreglo de resultados
@@ -99,11 +131,11 @@ if ( $recursos ) {
 			//Imprimimos id y página
 			/*echo "<pre>";
 			var_dump($recursos[$i]);
-			echo "</pre>";*/
+			echo "</pre>";
 			echo "<tr>
 					<td>".$recursos[$i]['titulo']."</td>
 					<td>".$recursos[$i]['entidad']."</td>
-					<td>".$recursos[$i]['estatus']."</td>
+					<td>".$recursos[$i]['estado']."</td>
 					<td>".$recursos[$i]['url']."</td>
 					<td>Error</td>
 				</tr>";
@@ -134,6 +166,7 @@ if ( $recursos ) {
 		}
 	}
 }
+*/
 ?>
 		</tbody>
 	</table>

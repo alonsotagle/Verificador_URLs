@@ -1,7 +1,12 @@
-<?php 
+<?php
+
+$serverMysql = "localhost";
+$usuarioMysql = "root";
+$passMysql = "";
+$base_datos = "tultest";
 
 //Accesos a mysql
-$conexion = mysql_connect("localhost","root","");  
+$conexion = mysql_connect($serverMysql, $usuarioMysql, $passMysql);  
     
 //Error de conexión
 if (!$conexion) {  
@@ -9,9 +14,7 @@ if (!$conexion) {
 }  
 
 //echo 'Conectado satisfactoriamente <br><br>'; 
-  
-//Escoger la BD
-$base_datos = "tultest";
+
 $bd_seleccionada = mysql_select_db($base_datos,$conexion);
 
 //Error al escoger la BD
@@ -35,6 +38,7 @@ if (!$resultado) {
 
 //Arreglo con los recursos
 $recursos = array();
+$links = array();
 $contador = 0;
 
 //Iteramos para llenar arreglo con valores deseados
@@ -44,6 +48,7 @@ while ($recurso = mysql_fetch_assoc($resultado)) {
 	$recursos[$contador]["entidad"] = $recurso["rec_urlEntidad_rs"];
 	$recursos[$contador]["estado"] = $recurso["rec_estatus"];
 	$recursos[$contador]["url"] = $recurso["rec_url"];
+	$links[$contador] = $recurso["rec_url"];
 	$contador++;
 }
 
@@ -53,6 +58,9 @@ while ($recurso = mysql_fetch_assoc($resultado)) {
 
 //Liberamos memoria de la consulta
 mysql_free_result($resultado);
+
+$sqlCount = "SELECT COUNT(*) FROM  `recurso` ";
+$elementos = mysql_query($sqlCount);
   
 //Cerramos la conexión
 mysql_close($conexion);
