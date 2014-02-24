@@ -1,0 +1,19 @@
+
+body{
+	background-color: #ADADAD;
+}
+
+#menu{
+	background-color: #797979;
+	height: 2em;
+}
+
+#menu li{
+	list-style: none;
+	float: left;
+	margin: 2px 30px 2px 30px;
+}
+
+#tabla{
+	border: 1px solid #292929;
+}
