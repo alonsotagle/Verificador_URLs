@@ -40,6 +40,8 @@ if (!$resultado) {
 $recursos = array();
 $links = array();
 $contador = 0;
+$contadorPrincipal = 0;
+$contadorSecundario = 0;
 
 //Iteramos para llenar arreglo con valores deseados
 while ($recurso = mysql_fetch_assoc($resultado)) {
@@ -48,7 +50,14 @@ while ($recurso = mysql_fetch_assoc($resultado)) {
 	$recursos[$contador]["entidad"] = $recurso["rec_urlEntidad_rs"];
 	$recursos[$contador]["estado"] = $recurso["rec_estatus"];
 	$recursos[$contador]["url"] = $recurso["rec_url"];
-	$links[$contador] = $recurso["rec_url"];
+	//$links[$contador] = $recurso["rec_url"];
+	if ($contadorSecundario >= 100) {
+		$contadorPrincipal++;
+		$contadorSecundario = 0;
+	}
+	$links[$contadorPrincipal][$contadorSecundario] = $recurso["rec_url"];
+
+	$contadorSecundario++;
 	$contador++;
 }
 
@@ -56,11 +65,18 @@ while ($recurso = mysql_fetch_assoc($resultado)) {
 // var_dump($recursos);
 // echo "</pre>";
 
+$sqlCount = "SELECT COUNT(*) FROM  `recurso` ";
+$consultaCOUNT = mysql_query($sqlCount);
+$elementos = mysql_fetch_row($consultaCOUNT);
+//var_dump($elementos);
+
+if (!$elementos) {
+    echo "No se pudo ejecutar con exito la consulta ($sql) en la BD: " . mysql_error();
+    exit;
+}
+
 //Liberamos memoria de la consulta
 mysql_free_result($resultado);
-
-$sqlCount = "SELECT COUNT(*) FROM  `recurso` ";
-$elementos = mysql_query($sqlCount);
   
 //Cerramos la conexión
 mysql_close($conexion);

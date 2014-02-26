@@ -18,7 +18,10 @@
 	</ul>
 
 	<div>No. de Links analizados:</div>
-	<p><?php echo $elementos; ?></p>
+	<p><?php
+	require "conexion_bd.php";
+	echo $elementos[0];
+	?></p>
 
 	<table id="tabla">
 		<thead>
@@ -37,10 +40,13 @@ require "conexion_bd.php";
 
 //Función que verifica la url
 function verifica($url){
+	
+	/*
 	//Valido si es una URL valida
 	if (!filter_var($url, FILTER_VALIDATE_URL)){
 		return 200;
 	}
+	*/
 
 	//Inicializo CURL
 	$curl = curl_init();
@@ -48,11 +54,11 @@ function verifica($url){
     curl_setopt($curl, CURLOPT_URL, $url);
     //Tiempo para conexión
 	curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
-	//Peticiones HEAD
+	//Para regresar el HEAD
 	curl_setopt($curl, CURLOPT_HEADER, true);
-	//Sólo petición HEAD
+	//Sólo petición HEAD sin BODY
 	curl_setopt($curl, CURLOPT_NOBODY, true);
-	//No imprime e navegador
+	//Para que curl_exec() pueda ser asignado a una variable
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 	//Incluir páginas https
 	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
@@ -62,10 +68,10 @@ function verifica($url){
 	//print_r($response);
 
 	//Mostrar información de la respuesta
-	$info = curl_getinfo($curl);
+	$info = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-	if ($info['http_code'] > 302) {
-		return $info['http_code'];
+	if ($info > 302) {
+		return $info;
 		//echo $info['http_code'] .'<a href="'. $info['url'] .'"> ' . $info['url'] .'</a><br>';
 	}
 	
@@ -85,33 +91,63 @@ function verifica($url){
 
 function multi($links){
 
-	$mh = curl_multi_init();
+	//Para manejar llamados curl paralelos
+	$curl_multiple = curl_multi_init();
 
+	//Iterar arreglo configurando curl's individuales
 	foreach ($links as $i => $url) {
-	       $conn[$i]=curl_init($url);
-	       curl_setopt($conn[$i],CURLOPT_RETURNTRANSFER,1);//return data as string 
-	       curl_setopt($conn[$i],CURLOPT_FOLLOWLOCATION,1);//follow redirects
-	       curl_setopt($conn[$i],CURLOPT_MAXREDIRS,2);//maximum redirects
-	       curl_setopt($conn[$i],CURLOPT_CONNECTTIMEOUT,10);//timeout
-	       curl_multi_add_handle ($mh,$conn[$i]);
+		//Iniciando curl individual
+		$curl_individual[$i] = curl_init($url);
+
+		//Configurando curl individual
+		//Se manda la página
+	    curl_setopt($curl_individual, CURLOPT_URL, $url);
+	    //Tiempo para conexión
+		curl_setopt($curl_individual, CURLOPT_CONNECTTIMEOUT, 10);
+		//Para regresar el HEAD
+		curl_setopt($curl_individual, CURLOPT_HEADER, true);
+		//Sólo petición HEAD sin BODY
+		curl_setopt($curl_individual, CURLOPT_NOBODY, true);
+		//Para que curl_exec() pueda ser asignado a una variable
+		curl_setopt($curl_individual, CURLOPT_RETURNTRANSFER, true);
+		//Incluir páginas https
+		curl_setopt($curl_individual, CURLOPT_SSL_VERIFYPEER, false);
+
+		curl_multi_add_handle($curl_multiple,$curl_individual[$i]);
 	}
 
-	do { $n=curl_multi_exec($mh,$active); } while ($active);
+	do{
+		$n=curl_multi_exec($curl_multiple,$active);
+	} while($active);
 
 	foreach ($links as $i => $url) {
-	       $res[$i]=curl_multi_getcontent($conn[$i]);
-	       curl_multi_remove_handle($mh,$conn[$i]);
-	       curl_close($conn[$i]);
+			$info = curl_getinfo($curl_individual[$i]);
+			var_dump($info);
+			$res[$i] = curl_multi_getcontent($curl_individual[$i]);
+			curl_multi_remove_handle($curl_multiple,$curl_individual[$i]);
+			curl_close($curl_individual[$i]);
 	}
-	curl_multi_close($mh);
+	curl_multi_close($curl_multiple);
 
-
-	print_r($res);
+	echo "<pre>";
+	//var_dump($res);
+	echo "</pre>";
 
 }
 
-var_dump($links);
+// echo "<pre>";
+// var_dump($links);
+// echo "</pre>";
 //multi($links);
+
+
+foreach ($links as $key => $value) {
+	set_time_limit(0);
+	echo verifica($value);
+}
+
+
+//multi($links[0]);
 	
 /*
 //Se ingresa directo
@@ -170,6 +206,5 @@ if ( $recursos ) {
 ?>
 		</tbody>
 	</table>
-<?php ?>
 </body>
 </html>
