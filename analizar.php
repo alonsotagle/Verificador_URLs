@@ -8,14 +8,6 @@
 	<link rel="stylesheet" type="text/css" href="estilos.css">
 </head>
 <body>
-	<ul id="menu">
-		<li>Inicio</li>
-		<li>Ordenar</li>
-		<li>Ocultar</li>
-		<li>Eliminar seleccionados</li>
-		<li>Actualizar seleccionados</li>
-		<li>Desactivar seleccionados</li>
-	</ul>
 
 	<div>No. de Links analizados:</div>
 	<p><?php
@@ -23,7 +15,7 @@
 	echo $elementos[0];
 	?></p>
 
-	<table id="tabla">
+	<table class="tables">
 		<thead>
 			<tr>
 				<th>Título</th>
@@ -40,18 +32,9 @@ require "conexion_bd.php";
 
 //Función que verifica la url
 function verifica($url){
-	
-	/*
-	//Valido si es una URL valida
-	if (!filter_var($url, FILTER_VALIDATE_URL)){
-		return 200;
-	}
-	*/
 
 	//Inicializo CURL
-	$curl = curl_init();
-	//Se manda la página
-    curl_setopt($curl, CURLOPT_URL, $url);
+	$curl = curl_init($url);
     //Tiempo para conexión
 	curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 10);
 	//Para regresar el HEAD
@@ -101,53 +84,65 @@ function multi($links){
 
 		//Configurando curl individual
 		//Se manda la página
-	    curl_setopt($curl_individual, CURLOPT_URL, $url);
+	    curl_setopt($curl_individual[$i], CURLOPT_URL, $url);
 	    //Tiempo para conexión
-		curl_setopt($curl_individual, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($curl_individual[$i], CURLOPT_CONNECTTIMEOUT, 10);
 		//Para regresar el HEAD
-		curl_setopt($curl_individual, CURLOPT_HEADER, true);
+		curl_setopt($curl_individual[$i], CURLOPT_HEADER, true);
 		//Sólo petición HEAD sin BODY
-		curl_setopt($curl_individual, CURLOPT_NOBODY, true);
+		curl_setopt($curl_individual[$i], CURLOPT_NOBODY, true);
 		//Para que curl_exec() pueda ser asignado a una variable
-		curl_setopt($curl_individual, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_individual[$i], CURLOPT_RETURNTRANSFER, true);
 		//Incluir páginas https
-		curl_setopt($curl_individual, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_individual[$i], CURLOPT_SSL_VERIFYPEER, false);
 
 		curl_multi_add_handle($curl_multiple,$curl_individual[$i]);
 	}
 
 	do{
-		$n=curl_multi_exec($curl_multiple,$active);
+		$estado = curl_multi_exec($curl_multiple,$active);
 	} while($active);
 
 	foreach ($links as $i => $url) {
 			$info = curl_getinfo($curl_individual[$i]);
-			var_dump($info);
-			$res[$i] = curl_multi_getcontent($curl_individual[$i]);
+			//echo $info["http_code"];
+			//var_dump($info);
+			$res[$i] = $info["http_code"];
 			curl_multi_remove_handle($curl_multiple,$curl_individual[$i]);
 			curl_close($curl_individual[$i]);
 	}
 	curl_multi_close($curl_multiple);
 
-	echo "<pre>";
-	//var_dump($res);
+	/*echo "<pre>";
+	var_dump($res);
 	echo "</pre>";
+	*/
+	return $res;
 
 }
 
 // echo "<pre>";
 // var_dump($links);
 // echo "</pre>";
-//multi($links);
 
-
+/*
 foreach ($links as $key => $value) {
-	set_time_limit(0);
-	echo verifica($value);
+	echo "</pre>";
+	echo verifica($value[0]);
 }
+*/
 
+$respuesta = multi($links[0]);
 
-//multi($links[0]);
+foreach ($links as $i => $valor) {
+		echo "<tr>
+					<td>".$recursos[$i]['titulo']."</td>
+					<td>".$recursos[$i]['entidad']."</td>
+					<td>".$recursos[$i]['estado']."</td>
+					<td>".$recursos[$i]['url']."</td>
+					<td>".$respuesta[$i]."</td>
+				</tr>";
+}
 	
 /*
 //Se ingresa directo
