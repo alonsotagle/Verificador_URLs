@@ -23,7 +23,12 @@ if (!$bd_seleccionada) {
 } 
 
 //Sentencia SQL
-$sql = "SELECT * FROM  `recurso` ";
+$sql = "SELECT r.rec_id, r.rec_titulo_largo, r.rec_estatus, r.rec_url 
+		FROM recurso as r";
+		/*
+		JOIN categoria_recurso as cr on r.rec_id = cr.rec_id
+		JOIN categoria as c on cr.cat_id = c.cat_id";
+		*/
 $resultado = mysql_query($sql);
 
 //Error en la consulta
@@ -32,9 +37,9 @@ if (!$resultado) {
     exit;
 }
 
-// echo "<pre>";
-// var_dump(mysql_fetch_assoc($resultado));
-// echo "</pre>";
+echo "<pre>";
+//var_dump(mysql_fetch_assoc($resultado));
+echo "</pre>";
 
 //Arreglo con los recursos
 $recursos = array();
@@ -47,7 +52,7 @@ $contadorSecundario = 0;
 while ($recurso = mysql_fetch_assoc($resultado)) {
 	$recursos[$contador]["id"] = $recurso["rec_id"];
 	$recursos[$contador]["titulo"] = $recurso["rec_titulo_largo"];
-	$recursos[$contador]["entidad"] = $recurso["rec_urlEntidad_rs"];
+	$recursos[$contador]["entidad"] = "ENTIDAD"; //$recurso["rec_entidad"];
 	$recursos[$contador]["estado"] = $recurso["rec_estatus"];
 	$recursos[$contador]["url"] = $recurso["rec_url"];
 	//$links[$contador] = $recurso["rec_url"];

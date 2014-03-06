@@ -28,8 +28,6 @@
 		<tbody>
 <?php
 
-require "conexion_bd.php";
-
 //Función que verifica la url
 function verifica($url){
 
@@ -86,7 +84,7 @@ function multi($links){
 		//Se manda la página
 	    curl_setopt($curl_individual[$i], CURLOPT_URL, $url);
 	    //Tiempo para conexión
-		curl_setopt($curl_individual[$i], CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($curl_individual[$i], CURLOPT_CONNECTTIMEOUT, 30);
 		//Para regresar el HEAD
 		curl_setopt($curl_individual[$i], CURLOPT_HEADER, true);
 		//Sólo petición HEAD sin BODY
@@ -100,20 +98,20 @@ function multi($links){
 	}
 
 	do{
+		set_time_limit(0);
 		$estado = curl_multi_exec($curl_multiple,$active);
 	} while($active);
 
 	foreach ($links as $i => $url) {
 			$info = curl_getinfo($curl_individual[$i]);
-			//echo $info["http_code"];
-			//var_dump($info);
 			$res[$i] = $info["http_code"];
 			curl_multi_remove_handle($curl_multiple,$curl_individual[$i]);
 			curl_close($curl_individual[$i]);
 	}
 	curl_multi_close($curl_multiple);
 
-	/*echo "<pre>";
+	/*
+	echo "<pre>";
 	var_dump($res);
 	echo "</pre>";
 	*/
@@ -121,9 +119,9 @@ function multi($links){
 
 }
 
-// echo "<pre>";
-// var_dump($links);
-// echo "</pre>";
+echo "<pre>";
+//var_dump($recursos);
+echo "</pre>";
 
 /*
 foreach ($links as $key => $value) {
@@ -134,7 +132,14 @@ foreach ($links as $key => $value) {
 
 $respuesta = multi($links[0]);
 
-foreach ($links as $i => $valor) {
+foreach ($links[0] as $i => $valor) {
+	echo $recursos[$i]['estado'];
+	if ($recursos[$i]['estado'] > 302) {
+		if ($recursos[$i]['estado'] == 1) {
+			$recursos[$i]['estado'] = "Activo";
+		}else{
+			$recursos[$i]['estado'] = "Oculto";
+		}
 		echo "<tr>
 					<td>".$recursos[$i]['titulo']."</td>
 					<td>".$recursos[$i]['entidad']."</td>
@@ -142,6 +147,7 @@ foreach ($links as $i => $valor) {
 					<td>".$recursos[$i]['url']."</td>
 					<td>".$respuesta[$i]."</td>
 				</tr>";
+	}
 }
 	
 /*
