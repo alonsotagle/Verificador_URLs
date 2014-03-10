@@ -4,6 +4,7 @@ $serverMysql = "localhost";
 $usuarioMysql = "root";
 $passMysql = "";
 $base_datos = "tultest";
+$tabla = "recurso";
 
 //Accesos a mysql
 $conexion = mysql_connect($serverMysql, $usuarioMysql, $passMysql);  
@@ -12,8 +13,6 @@ $conexion = mysql_connect($serverMysql, $usuarioMysql, $passMysql);
 if (!$conexion) {  
     die('No pudo conectarse: ' . mysql_error() );  
 }  
-
-//echo 'Conectado satisfactoriamente <br><br>'; 
 
 $bd_seleccionada = mysql_select_db($base_datos,$conexion);
 
@@ -24,11 +23,7 @@ if (!$bd_seleccionada) {
 
 //Sentencia SQL
 $sql = "SELECT r.rec_id, r.rec_titulo_largo, r.rec_estatus, r.rec_url 
-		FROM recurso as r";
-		/*
-		JOIN categoria_recurso as cr on r.rec_id = cr.rec_id
-		JOIN categoria as c on cr.cat_id = c.cat_id";
-		*/
+		FROM $tabla as r";
 $resultado = mysql_query($sql);
 
 //Error en la consulta
@@ -36,10 +31,6 @@ if (!$resultado) {
     echo "No se pudo ejecutar con exito la consulta ($sql) en la BD: " . mysql_error();
     exit;
 }
-
-echo "<pre>";
-//var_dump(mysql_fetch_assoc($resultado));
-echo "</pre>";
 
 //Arreglo con los recursos
 $recursos = array();
@@ -55,8 +46,7 @@ while ($recurso = mysql_fetch_assoc($resultado)) {
 	$recursos[$contador]["entidad"] = "ENTIDAD"; //$recurso["rec_entidad"];
 	$recursos[$contador]["estado"] = $recurso["rec_estatus"];
 	$recursos[$contador]["url"] = $recurso["rec_url"];
-	//$links[$contador] = $recurso["rec_url"];
-	if ($contadorSecundario >= 100) {
+	if ($contadorSecundario >= 1000) {
 		$contadorPrincipal++;
 		$contadorSecundario = 0;
 	}
@@ -66,14 +56,9 @@ while ($recurso = mysql_fetch_assoc($resultado)) {
 	$contador++;
 }
 
-// echo "<pre>";
-// var_dump($recursos);
-// echo "</pre>";
-
 $sqlCount = "SELECT COUNT(*) FROM  `recurso` ";
 $consultaCOUNT = mysql_query($sqlCount);
 $elementos = mysql_fetch_row($consultaCOUNT);
-//var_dump($elementos);
 
 if (!$elementos) {
     echo "No se pudo ejecutar con exito la consulta ($sql) en la BD: " . mysql_error();
